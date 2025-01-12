@@ -12,7 +12,7 @@ module.exports = {
   },
   devServer: { port: 3001, hot: true, open: true },
   plugins: [
-    new HtmlWebpackPlugin({ template: "./src/index.html" }),
+    new HtmlWebpackPlugin({ template: "./index.html" }),
     new MiniCssExtractPlugin({ filename: "css/mystyle.css" }),
   ],
   module: {
