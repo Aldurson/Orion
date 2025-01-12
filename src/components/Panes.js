@@ -735,7 +735,9 @@ export const CustomProjects = () => {
 
   return (
     <div className="content-panel shadow-lg mb-5 bg-white" id="projects">
-      <h1>Projects1</h1>
+      <h1>
+        Projects <em style={{ color: "red", fontSize: "1rem" }}>beta</em>
+      </h1>
       <div className="container-map">
         <Sidebar
           stations={stations}
