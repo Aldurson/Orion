@@ -288,7 +288,9 @@ export const CustomPassions = () => {
   return (
     <div id="passion" className="content-panel shadow-lg mb-5 bg-white">
       <div style={{ width: "700px" }}>
-        <h1>Passions</h1>
+        <h1>
+          Passions <em style={{ color: "red", fontSize: "1rem" }}>beta</em>
+        </h1>
 
         <ol>
           <li>
@@ -317,10 +319,41 @@ export const CustomPassions = () => {
           <br />
           <li>
             <div>
-              <h3>Typing</h3>
-              <p>Typing is creating, </p>
-              <p>when the highest form is speaking.</p>
-              <p>Let there be light.</p>
+              <h3>Github work</h3>
+              <ul>
+                <li>Resume : https://github.com/Aldurson/Orion.git</li>
+                <li>
+                  Crime Stats Work Inspiration :
+                  https://github.com/Aldurson/wash.git
+                </li>
+                <li>
+                  Online work contribution for digital coin :
+                  https://github.com/overmind-xyz/pay-me-a-river-remastered-clookwa280006la08aoq8gxmt.git
+                </li>
+                <li>
+                  CV from 4 years ago : https://github.com/Aldurson/cv.git
+                </li>
+                <li>
+                  Practice udemy course repeat work for code familiarity :
+                  https://github.com/Aldurson/Drum_Kit_Challenge.git
+                </li>
+                <li>
+                  Java UI for voice recorder inspired by job :
+                  https://github.com/Aldurson/VoiceWork.git
+                </li>
+                <li>
+                  Overmind work for digital coin :
+                  https://github.com/overmind-xyz/over-network-pt-2-clookwa280006la08aoq8gxmt.git
+                </li>
+                <li>
+                  Udemy course practice work :
+                  https://github.com/Aldurson/07-Pig-Game.git
+                </li>
+                <li>
+                  Udemy course practice work :
+                  https://github.com/Aldurson/05-Guess-My-Number.git
+                </li>
+              </ul>
             </div>
           </li>
         </ol>
