@@ -1,4 +1,4 @@
-# NS Nyamah Resume(){
+# NS Nyamah Resume
 
 ## Table of Contents
 
@@ -69,4 +69,4 @@
 5. The passions panel, host all the projects live and have the hyperlink take you to them.
 6. Look into security here, some of the information here should be private unless password provided.
 
-# };
+#
