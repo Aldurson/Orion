@@ -13,7 +13,13 @@ export const CustomModal = ({ active, setActive, station }) => {
   }
 
   return (
-    <Modal show={active} onHide={closeModal} size="sm" centered={true}>
+    <Modal
+      show={active}
+      onHide={closeModal}
+      animation={true}
+      size="xl"
+      centered={true}
+    >
       <CustomHead station={station} />
       <CustomBody station={station} />
       <CustomFoot closeModal={closeModal} />

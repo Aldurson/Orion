@@ -6,9 +6,12 @@ import img1 from "./img/run.gif";
 import gauteng_stats from "./res/crime_gauteng.ods";
 import limpopo_stats from "./res/crime_limpopo.ods";
 import northwest_stats from "./res/crime_northwest.ods";
-import caampus from "./img/CCTV.png";
+import campus from "./img/CCTV.png";
 import adm from "./img/ADM.png";
 import xlsx from "xlsx";
+import L from "leaflet";
+import policeImg from "./img/red.jpeg";
+import cctvImg from "./img/CCTV.png";
 export const URL = "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png";
 export const ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
@@ -22,13 +25,12 @@ export const reverseGeocodingUrl = (lat, lng, revGeoApi) =>
 const geocodingUrl = (name) => {
   const temp1 = name.split(" ");
   const temp2 = temp1.length > 1 ? temp1.join("%20") : temp1;
-  //const temp = name.split(" ").join("20%");
   const searcher = `https://api.geoapify.com/v1/geocode/search?text=${temp2}%2C%20south%20africa&format=json&apiKey=${GeoApi}
 `;
   return searcher;
 };
 
-export const getCoords = (name) => {
+const getCoords = async (name) => {
   const url = geocodingUrl(name);
   let coords;
   fetch(url)
@@ -44,10 +46,10 @@ export const getCoords = (name) => {
     })
     .catch((e) => {
       console.log(`error happened ${e}`);
+      coords = COORDS;
     });
   return coords;
 };
-
 export const setName = ({ lat, lng }) => {
   const url = reverseGeocodingUrl(lat, lng, revGeoApi);
   let name;
@@ -82,7 +84,7 @@ export const readBooks = () => {
       message: temp[5],
       type: "book",
       title_modal: `Title: ${temp[0]}`,
-      body_modal: function () {
+      body_modal() {
         return (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
             <img
@@ -100,6 +102,11 @@ export const readBooks = () => {
   });
   return booksObjs;
 };
+//get reverse gps coordinates from names
+export const dataStations1 = () => {
+  console.log("gets here");
+  return ["df"];
+};
 export const dataStations = () => {
   function freshData(sheetname, file) {
     function createData(item) {
@@ -112,30 +119,99 @@ export const dataStations = () => {
       const dataArr = [datas[1], datas[2], datas[3], datas[4], datas[5]];
       dataObject.crimes_summary.push({ [datas[0]]: dataArr });
     }
+
     let dataObject = {
       crimes: [],
       crimes_summary: [],
       name: "",
+      sex_num: 0,
+      murder_num: 0,
+      steal_num: 0,
+      murder_rating: "",
+      steal_rating: "",
+      sex_rating: "",
       rating: 0,
+      acr: [],
+      fullnames: [],
+      stats: [],
+      getIcon() {
+        return L.icon({
+          iconUrl: policeImg,
+          iconSize: [25, 25],
+          iconAnchor: [25, 50],
+        });
+      },
       provinceName: "",
       coords: [0, 0],
-      popup_content: function () {
+      num_of_crimes: 0,
+      popup_content() {
         return (
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <h6>Police Station: {this.provinceName}</h6>
-            <h6>{this.name}</h6>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              fontSize: "11px",
+            }}
+          >
+            <p>Police Station: {this.name}</p>
+
             <p>click me</p>
           </div>
         );
       },
-      title_modal: function () {
+      menuItem_content() {
+        return (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              fontSize: "8px",
+            }}
+          >
+            <p>Town: {this.name}</p>
+            <p>Murder Rating : {this.murder_rating}</p>
+          </div>
+        );
+      },
+      title_modal() {
         return;
         <h3>
           Police Station ,{this.provinceName}, {this.name}
         </h3>;
       },
-      body_modal: function () {
-        return <h1>helieve</h1>;
+      body_modal() {
+        return (
+          <div>
+            <h5 style={{ marginBottom: "3rem" }}>
+              Statistics : Province - {this.provinceName}, Town - {this.name}
+            </h5>
+            <ul>
+              <li>Overall crime stat rating : {this.overall_rating}</li>
+              <li>Murder Offense rating : {this.murder_rating}</li>
+              <li>Sex Offense rating : {this.sex_rating}</li>
+              <li>Steal Offense rating : {this.steal_rating}</li>
+            </ul>
+            <div className="stats-div">
+              {this.fullnames.map((item, i) => {
+                return (
+                  <div>
+                    {item} :
+                    <ul style={{ listStyleType: "none" }}>
+                      <li>{this.stats[i][0]} cases in 2021</li>
+                      <li>
+                        {this.stats[i][1]}
+                        cases in 2022
+                      </li>
+                      <li>{this.stats[i][2]} cases in 2023</li>
+                      <li>{this.stats[i][3]} cases in 2024</li>
+                      <li>{this.stats[i][4]} cases in 2025</li>
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
       },
     };
 
@@ -196,7 +272,23 @@ export const dataStations = () => {
         case 46:
         case 47:
         case 49:
+          // i should filter data object for unused data.
           createData(item);
+          dataObject.fullnames = dataObject.crimes.map((item) => {
+            // Im sure theres a better way of doing this.
+            const temp = Object.keys(item);
+            return temp[0];
+          });
+          dataObject.acr = dataObject.fullnames.map((item) => {
+            const temp = item.split(" ");
+            if (temp.length < 2) return item[0];
+            return temp.map((temp1) => temp1[0].toUpperCase()).join("");
+          });
+          dataObject.stats = dataObject.crimes.map((item) => {
+            // Im sure theres a better way of doing this.
+            const temp = Object.values(item);
+            return temp[0];
+          });
           break;
         case 12:
         case 22:
@@ -215,13 +307,11 @@ export const dataStations = () => {
     return new Promise((resolve, reject) => {});
   }
   let namevalue = "";
-
   const files = [limpopo_stats, gauteng_stats, northwest_stats];
-  let dataObjects = [];
   let dataObjects_x = [];
 
   files.forEach((file) => {
-    const sheetsArr = Array.from(file.SheetNames); //names of sheets
+    const sheetsArr = [...file.SheetNames]; //names of sheets
     const sheetsNum = sheetsArr.length - 2; //number of sheet names
 
     let rawDataArr = [];
@@ -229,12 +319,74 @@ export const dataStations = () => {
       // returns object to be pushed into array, where other objects from same province go in
       rawDataArr.push(freshData(sheetsArr[count], file));
     }
-    dataObjects.push({ [namevalue]: rawDataArr });
     dataObjects_x.push(...rawDataArr);
     namevalue = "";
   });
-  //return dataObjects;
-  return dataObjects_x;
+  const sites_length = dataObjects_x.length;
+
+  dataObjects_x.forEach((item) => {
+    item.stats.forEach((temp, i) => {
+      if (i == 0 || i == 2) {
+        const temp1 = temp.reduce((acc, tempx) => acc + +tempx, 0);
+        item.murder_num += temp1;
+        item.num_of_crimes += temp1;
+        return;
+      }
+      if (i == 1 || i == 7 || i == 8 || i == 9 || i == 10 || i == 31) {
+        const temp1 = temp.reduce((acc, tempx) => acc + +tempx, 0);
+        item.sex_num += temp1;
+        item.num_of_crimes += temp1;
+        return;
+      }
+      if (
+        i == 5 ||
+        i == 6 ||
+        i == 11 ||
+        i == 12 ||
+        i == 13 ||
+        i == 14 ||
+        i == 15 ||
+        i == 16 ||
+        i == 19 ||
+        i == 20 ||
+        i == 21 ||
+        i == 22 ||
+        i == 23 ||
+        i == 24 ||
+        i == 26 ||
+        i == 32
+      ) {
+        const temp1 = temp.reduce((acc, tempx) => acc + +tempx, 0);
+        item.steal_num += temp1;
+        item.num_of_crimes += temp1;
+        return;
+      }
+      item.num_of_crimes += temp.reduce((acc, tempx) => acc + +tempx, 0);
+    });
+  });
+  console.log(dataObjects_x);
+
+  return dataObjects_x
+    .sort((a, b) => b.num_of_crimes - a.num_of_crimes)
+    .map((item, i) => {
+      item.overall_rating = `${i - 4} out of ${sites_length}`;
+      return item;
+    })
+    .sort((a, b) => b.sex_num - a.sex_num)
+    .map((item, i) => {
+      item.sex_rating = `${i - 4} out of ${sites_length}`;
+      return item;
+    })
+    .sort((a, b) => b.murder_num - a.murder_num)
+    .map((item, i) => {
+      item.murder_rating = `${i - 4} out of ${sites_length}`;
+      return item;
+    })
+    .sort((a, b) => b.steal_num - a.steal_num)
+    .map((item, i) => {
+      item.steal_rating = `${i - 4} out of ${sites_length}`;
+      return item;
+    });
 };
 export const experiences = [
   {
@@ -319,25 +471,25 @@ export const shortCourses = [
     name: "100 Days of Code: The Complete Python Pro Bootcamp from Udemy",
     year: 2022,
     reason:
-      "Progress 30%, still doing revisions on javascript, HTML and CSS as well as Bootstrap, React, Leaflet and Bulma. Can't wait to allocate more of my mind to it for back-end development, machine learning and data analytics and story telling for the children through game development, some of these arcarde games look like python could be used to modify them, plus i have a secret currency project in mind for it.",
+      "Progress 30%, still doing revisions on javascript, HTML and CSS as well as Bootstrap, React, Leaflet and Bulma. Can't wait to allocate more of my mind to it for back-end development, machine learning and data analytics and story telling for the children through game development, some of these arcarde games look like python could be used to modify them, plus i have a secret currency project in mind for it. In my professional life, the backend possibilities, data analysis and even AI integrations could go a long way",
   },
   {
     name: "Programming Network Applications in Java from Udemy(only 30% no application environment)",
     year: 2020,
     reason:
-      "Progress 30%, no environment to apply this knowledge, i still have an appetite for it though, maybe the future will provide something.",
+      "Progress 30%, no environment to apply this knowledge, i still have an appetite for it though, maybe the future will provide something. Its application in my professional life can be facilitated for by learnings in javascript, html, CSS and the frameworks, libraries and tools that support them.",
   },
   {
     name: "Git: Become an Expert in Git & GitHub in 4 Hours from Udemy",
     year: 2022,
     reason:
-      "Progress 100% one time, used it for my web dev projects, have not gotten the knack for a need for this, especially when working alone on all my projects, i can remember where i was usually when i leave a project and when i forget i like the exercise of figuring out where i was, it is like a re-learning of your own code. I need to get comforable in using this tool and use it as second nature, it will help when i teach coding to others instead of writing it for them all the time. I have accepted that i love coding and will always do it, i must give in to its mandatory tools of which this is one.",
+      "Progress 100% one time, used it for my web dev projects, have not gotten the knack for a need for this, especially when working alone on all my projects, i can remember where i was usually when i leave a project and when i forget i like the exercise of figuring out where i was, it is like a re-learning of your own code, time is not a scarce resource right now but should be comfortable with this for when it is. I need to get comforable in using this tool and use it as second nature, it will help when i teach coding to others instead of writing it for them all the time.",
   },
   {
     name: "The Complete 2023 Web Development Bootcamp from Udemy",
     year: 2021,
     reason:
-      "Progress 100% one time, Dr Angela Yu is amazing, i have done 2 of her other courses, this course set the foundation for my knowledge in CSS, HTML and Javascript and Bootstrap, Jquery and API's, it is a power course, i recommend it for all, it is my 2nd greatest love on udemy after the Javascript what by Jonas Schmedtmann.",
+      "Progress 100% one time, Dr Angela Yu is amazing, i have done 2 of her other courses, this course set the foundation for my knowledge in CSS, HTML and Javascript and Bootstrap, Jquery and API's, it is a power course, i recommend it for all, it is my 2nd greatest love on udemy after the Javascript what by Jonas Schmedtmann. It too can be used for creating platforms for devices that have none or have one that is no longer supported by original equipment manufacturers.",
   },
   {
     name: "HTML5 & CSS3 Complete Course: Build Websites like a Pro from Udemy",
@@ -349,7 +501,7 @@ export const shortCourses = [
     name: "React.JS Crash Course: The Complete Course for Beginners from udemy",
     year: 2023,
     reason:
-      "progress 35%, content material repetition course from online self study and other courses. this courses leaves out alot said by actual online documentation, but the explanations are simpler and easier to understand, it requires a childs level of understanding.",
+      "progress 35%, content material repetition course from online self study and other courses. this courses leaves out alot said by actual online documentation, but the explanations are simpler and easier to understand, it requires a childs level of understanding. This too is a power resource for frontend development",
   },
   {
     name: "How To Still The Mind Through Meditation",
@@ -358,22 +510,10 @@ export const shortCourses = [
       "progress 64%, experimenting. I heard Bill Duke say that meditation saved his life and helped him turn it around in the late 80's/early 90s, i wanted to see what he saw, he seems to be the american actor with the highest moral character or one of, i liked a line he said on an interview on youtube where he talks about aspiring actors who sell sex for fame, he said, 'who are you after you lose yourself for things', or something to that effect, it struck a cord with me",
   },
   {
-    name: "Book of Reverlation: Unveiled discovering end-times mysteries",
-    year: 2023,
-    reason:
-      "Progress 30%, experimenting, i always loved revelations when i was 12 years old, i used to read it to my fellow hostel captains at Lord Milner High School as a story book to scare them in the night when we were done playing the illigal playstation 1. Now that i have free time and am no longer chasing success and money, let me see other peoples interpretations of this book. I wasnt impressed, too serious, i always preferred the adventure, sci-fi, imagination expanding, exciting interpretation of Revelation",
-  },
-  {
     name: "Mental Health for coping with stress & anxiety (coronavirus)",
     year: 2023,
     reason:
-      "Progress 54%, wanted to see how i handled the coronavirus in comparison to what professionals think i should have handled it,what was i supposed to know 4 years ago, one mistake i made during coronavirus was to go to my grandmothers village in limpopo, where i hadnt really been since 2005, 14 years prior. i would pay for that decision, the people who see you and lust after you and start making plans to get you, the lengths they go to, the things you show the poor and you dont know you are showing them, the appetites of the hungry. I had to discipline them with prayer though, all things turned out well in the end, there was alot of growth. Comparing what i did with what i was supposed to have done",
-  },
-  {
-    name: "The BEST Cryptocurrency Courses for ALL Levels from Udemy",
-    year: 2023,
-    reason:
-      "Progress 10%, content material incorrectly advertised, not what i thought. I expected it to be a course that introduced one to a good platform to evaluate cryptocurrencies, things to look out for, what cryptocurrency was, how things worked. It turned out to be bits and pieces of incomplete beginner level information, badly stuck together with enthuisiasm, the author could do better here, he seems to have some knowledge but was in too much of a rush to get this course on Udemy than to develop it correctly.",
+      "Progress 54%, wanted to see how i handled the coronavirus in comparison to what professionals think i should have handled it,what was i supposed to know 6 years ago. Comparing what i did with what i was supposed to have done, for both professional and personal life as they tended to overlap during the coronavirus era, with work from home dynamics.",
   },
   {
     name: "Cisco CCNP ENCOR 350-401: online attendance from mastergrade",
@@ -385,7 +525,7 @@ export const shortCourses = [
     name: "Java 17 Masterclass: Start Coding in 2024 from Udemy",
     year: 2020,
     reason:
-      "Progress 100% one time, Java was my favourite language since 2008, not that i knew it, it just looked interesting to me, and the fact that it was robust and could do anything. my mind couldnt understanding coding at beginner level till 2014 and only when i quit my job in 2022 did my mind open up to being able to learn at intermediate to mastery level. I need to re-do this course with the mind of close to 40 years, i know i am somewhat immature to the social things of human beings, but i imagine there will be a course in future to resolve that too, plus the 2 years since i left my job has done wow to my awareness and understanding of people. Losing seems to allow everyone around you to lower the mask the present to the world, so that you can really see who they are. The world seems to be 3 people. I ended up going to my grandmothers house for 3 years after quitting at Transnet, to try re-start the family buisness and help the people, it was taken as disrespect, their thought process being, who do you think you are to help us, another thing i learnt about black people, if you want to help them, you cannot be their friend, you need to oppress them, otherwise they will want your position, they will want to be you which starts with disrespect and trying to distroy and convince you that you are not who you think you are.",
+      "Progress 100% one time, Applications in work environment: development of desktop tools for the monitoring of network devices, i revised a monitoring application for remote optical time domain reflectometers (OTDR) that i wrote in java in 2014",
   },
   {
     name: "Cisco CCNA 200-301 : online attendance from mastergrade",
@@ -397,32 +537,32 @@ export const shortCourses = [
     name: "Android Java Masterclass - Become an App Developer from Udemy",
     year: 2020,
     reason:
-      "Progress 100% once, I ended up losing interest in app development, from reading articles talking about that wave being over, and friends focusing on formal education and asking me how I'm going to get people to come to my app. I should have ignored the articles and peoples words, the lessons from courses go far beyond the course itself, alot of skills learned in one course can be applied in different unrelated environments from first view.",
+      "Progress 100% once, I ended up losing interest in app development, from reading articles talking about that wave being over, and friends focusing on formal education and asking me how I'm going to get people to come to my app. I should have ignored the articles and peoples words, the lessons from courses go far beyond the course itself, alot of skills learned in one course can be applied in different unrelated environments from first view. I used the knowledge in this course, to create a dummy (just the frontend) android app to add snapshots of in work presentations for train container monitoring for the TFR RN Design department.",
   },
   {
     name: "[NEW] Spring Boot 3, Spring 6 & Hibernate for Beginners from Udemy",
     year: 2020,
     reason:
-      "progress 1%, let me get well versed at javascript, html, css, python, frameworks and tools first before i attend this stack. Let me get more comfortable with vanilla Java, i would like to master this cause eventually, maybe in 2030",
+      "progress 1%, let me get well versed at javascript, html, css, python, frameworks and tools first before i attend to this stack. Let me get more comfortable with vanilla Java, i would like to master this cause eventually, maybe in 2030, it is my dream to be as well versed in Spring as i am in everything javascript, hope i get there by time I'm 42 years.",
   },
   {
     name: "Huawei Certified Network Associate – Wireless Local Area Network from Huawei",
     year: 2019,
     reason:
-      "This course felt very much like CCNA courses, just a chinese interpretation then interpreted back to english to teach everyone else. It also felt very much like a sales pitch as in addition to the talk on standards, product selling was part of the course which broke concentration. Nobody is a fool, please leave the marketing for marketing environments, we are humans too. The lunches during training break sessions were amazing",
+      "This course felt very much like CCNA courses, just a chinese interpretation then interpreted back to english to teach everyone else. It also felt very much like a sales pitch as in addition to the talk on standards, product selling was 60% of the course which broke concentration. It supplemented my understanding of how all network control devices work, generically, they all seem to have the same format, much like everything else, it seems one company does the ground work and figures out how to make things work, then the companies that follow do their variation of a copy and paste. The lunches during training break sessions were amazing",
   },
   {
     name: "Huawei Certified ICT Associate Data Center Facility from Huawei",
     year: 2019,
     reason:
-      "I enjoy this course, more product selling but in a functional manner and exciting and simple. The lunches during breaks were standard.",
+      "I enjoyed this course, more product selling but in a functional manner and exciting and simple. The lunches during breaks were standard.",
   },
 
   {
     name: "Networking, Cloud, SDN, NFV, MPLS & Hot IT Trends Foundation from Udemy",
     year: 2018,
     reason:
-      "A comprehensive and simple introduction to network technologies, good for executive meeting discussions",
+      "A comprehensive and simple introduction to network technologies, good for executive meeting discussions, gives an overview understanding while hiding the difficult unnecesary parts for the purpose of talking to Execs.",
   },
   {
     name: "Internet of Things (IoT) Standards and Applications from SAIEE",
@@ -436,33 +576,33 @@ export const shortCourses = [
     name: "Certified Ethical Hacker from Torque IT",
     year: 2018,
     reason:
-      "Great course. For application in the workplace with respect to the network and systems, in informed me of the tools of hackers, the mindset somewhat of hackers, linux distros used, where tools are downloaded from, it seems like a black market eco-system of freely available malicious software that anyone can download if they know where to look at. The hackers look at vulnerabilities left by authors of software who are in a hurry to release a produce in order to make money, further outside of this, one person finds a vulnerability termed exploit and shares it freely with everyone else and so the eco-system keeps growing. So ethical hackers, part of their function is to keep a finger on this eco-system, to be a double agent per se. Firewalls and DMZ environments are one thing but there is more. It is an exciting environment, if i had no other environment responsibilities i would put my foot in this one, alas, i have a network and functional software to write, and engineers and technicians to train and maintenance to plan for and create training documentation for, and funds to request and exco meeting to chasse and supply chain to talk to and governance and unions, i like what i have though, allows a large playground for the intellectual side of the mind, single mindedness can be a problem sometimes. The best a corporate environment seems to have done is teach people to be careful of the emails they open and not do password sharing, the people are the weakest point of a network and that is the best we can do, the rest is on infrastructure and the final wall is ethical hacking.",
+      "Great course. For application in the workplace with respect to the network and systems, it informed me of the tools of hackers, the mindset of hackers, linux distros used (Kali), where tools are downloaded from, it seems like a black market eco-system of freely available malicious software that anyone can download if they know where to look at exists. The hackers look at vulnerabilities left by authors of software who are in a hurry to release a product in order to make money, further outside of this, one person finds a vulnerability termed exploit and shares it freely with everyone else and so the eco-system keeps growing. So ethical hackers, part of their function is to keep a finger on this eco-system, to be a double agent per se. Firewalls and DMZ environments are one thing but there is more. It is an exciting environment, if i had no other environment responsibilities i would put my foot in this one, alas, i have a network and functional software to write, and engineers and technicians to train and maintenance to plan for and create training documentation for, and funds to request and exco meeting to chase and supply chain to talk to and governance and unions, i like what i have though, allows a large playground for the intellectual side of the mind, single mindedness can be a problem sometimes. The best a corporate environment seems to have done is teach people to be careful of the emails they open and not do password sharing, the people are the weakest point of a network and that is the best we can do, the rest is on infrastructure and the final wall is ethical hacking. All that i have said above are things i learnt from this course.",
   },
   {
     name: "Digital Network Architecture Implementation Essentials from Torque IT",
     year: 2018,
     reason:
-      "This course was taken to prepare me for the technology upgrades on the network that would later ensue. They unilaterlly got delayed due to lack of funds for another 4 years. This course simplifies network management, introduces complete dependency and management platforms and creates a single point of failure in scenarios of cyber attacks. I dont like where technology is going, the west seems to be dictating our dependency on platforms they introduce and they are well versed at. Someone sitting anywhere in the world can hold a south african network hostage, there is no device autonomy, which has too great a disadvantage, with its greatest advantage being that one can bring a network up quicker.",
+      "This course was taken to prepare me for the technology upgrades on the network that would later ensue. They unilaterlly got delayed due to lack of funds for another 4 years. This course simplifies network management, introduces complete dependency and management platforms and creates a single point of failure in scenarios of cyber attacks. I dont like where technology is going, the west seems to be dictating our dependency on platforms they introduce and they are well versed at. Someone sitting anywhere in the world can hold a south african network hostage, there is no device autonomy, which has too great a disadvantage, with its greatest advantage being that one can bring a network up quicker. The previous comment was my view while i was employed.",
   },
 
   {
     name: "Interconnecting Cisco Networking Devices Part 1 (torque IT) from Torque IT",
     year: 2017,
     reason:
-      "This was the first official Cisco course i attended outside of the videos that were past to me by Thabo Putsoane. It was fulfilling. It would start me on a journey i could never have imagined. I always thought of getting at a high enough position to do something for Thabo along the lines of promotion, i never did get to a position to help him, i just got to a level right above him and had no position to promote him to and no power. I hope all things turned out well for him, i heard he too thought of quitting once he hit 40 years and Eric van der Merwe pulled him back from the dark side, if it really is the dark side, we will see.",
+      "This was the first official Cisco course i attended outside of the videos that were past to me in the work office. It started my networking career. It was fulfilling. It would start me on a journey i could never have imagined.",
   },
   {
     name: "NEC 3 : Engineering and Construction Contract (ECC3) from The conference Zone",
     year: 2017,
     reason:
-      "The best course to me on project management, this contract management, if i could i would attend this course once every year. It empowers the project manager and teaches tricks and shows you alternative ways of getting things done, when usually i would beg the contractor or have to know the technical details of the project to know when the project executioner was playing with me and have to show him i was smart too and he had to do what i was telling him to do or beg him to do something, this course puts the power back in the hands in he who has the money, whether he has technical knowledge on what the project entails or not, you can punish the project executioner.",
+      "The best skill resource to me (at the time of attendance) on project management, contract management; if i could i would attend this course once every year. It empowers the project manager and teaches tricks and shows you alternative ways of getting things done, when usually i would beg the contractor or have to know the technical details of the project to know when the project executioner was playing with me and wasting time and have to show him i was smart too and he had to do what i was telling him to do or beg him to do something, this course puts the power back in the hands in he who has the money, whether he has technical knowledge on what the project entails or not, you can punish the project executioner.",
   },
 
   {
     name: "Alcatel Lucient training attended from Alcatel",
     year: 2017,
     reason:
-      "Great course, enabled me to do maintenance at CIty deep and Germiston fuel depot on the CCTV network i had installed there. I recommend it, much better material than the Huawei material, very little sales pitching. I dont hate Huawei, i love them thats why i am straight forward, Africans together with Huawei could rule the world, but we would have to see each other as equals, not as one person smart and the other food.",
+      "Great course, enabled me to do maintenance at CIty deep and Germiston fuel depot on the CCTV network for security systems that i had installed there. I recommend it, much better material than the Huawei material, very little sales pitching. I dont hate Huawei, i love them thats why i am straight forward, Africans together with Huawei could rule the world, but we would have to see each other as equals, not as one person smart and the other food.",
   },
 
   {
@@ -474,12 +614,13 @@ export const shortCourses = [
     name: "Effective Technical Report Writing For Engineers & Technicians from BMK advanced corporate training",
     year: 2014,
     reason:
-      "This course taught good structure and nice tricks of how to be understood in report format. Simplified telling people what is in your head on paper. I recommend it to everyone",
+      "This course taught good structure and nice tricks of how to be understood in report writing format. Simplified telling people what is in your head on paper. I recommend it to everyone.",
   },
   {
     name: "Introduction to railway projects and processes from Transnet",
     year: 2014,
-    reason: "Good project on project management at small scale.",
+    reason:
+      "Good project on project management at small scale in a parastatal environment.",
   },
 ];
 export const navTitles = [
@@ -492,7 +633,6 @@ export const navTitles = [
   "Passions",
   "Ref",
 ];
-
 export const CCTV = function () {
   const cctv_struct = {
     project_type: "CCTV and campus network",
@@ -523,8 +663,15 @@ export const CCTV = function () {
       "i used security department finance manager to facilitate the year on year budgeting of the project.",
       "etc.",
     ],
+    getIcon() {
+      return L.icon({
+        iconUrl: cctvImg,
+        iconSize: [25, 25],
+        iconAnchor: [25, 50],
+      });
+    },
 
-    body_modal: function () {
+    body_modal() {
       return (
         <div style={{ display: "flex", flexDirection: "column" }}>
           <h1>{this.name}</h1>
@@ -565,7 +712,7 @@ export const CCTV = function () {
         </div>
       );
     },
-    popup_content: function () {
+    popup_content() {
       return (
         <div>
           <h1>
@@ -574,7 +721,7 @@ export const CCTV = function () {
         </div>
       );
     },
-    title_modal: function () {
+    title_modal() {
       return `${this.name} : ${this.project_type}`;
     },
   };
@@ -612,7 +759,8 @@ export const CCTV = function () {
   ];
   locations.forEach((item) => {
     //item.prototype.cctv = cctv_struct;
-    Object.assign(item, cctv_struct);
+    //Object.assign(item, cctv_struct);
+    return { ...item, ...cctv_struct };
   });
   return locations;
 };

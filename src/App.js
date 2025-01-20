@@ -1,4 +1,4 @@
-import react, { useEffect } from "react";
+import { useEffect } from "react";
 import reactDom from "react-dom/client";
 import { dataStations } from "./config";
 import {
@@ -15,11 +15,12 @@ import {
   CustomExperience,
 } from "./components/Panes";
 import "./css/styles.css";
+
 const root = reactDom.createRoot(document.querySelector("#root"));
 
 const App = () => {
   useEffect(() => {
-    console.log(dataStations());
+    console.log("fell");
   }, []);
   return (
     <React-StrictMode>
@@ -27,12 +28,12 @@ const App = () => {
         <CustomNavBar />
         <CustomHeader />
         <CustomAbout />
+        <CustomEducation />
         <CustomSkills />
         <CustomExperience />
-        <CustomProjects />
         <CustomCareer />
+        <CustomProjects />
         <CustomPassions />
-        <CustomEducation />
         <CustomRef />
         <CustomFoot />
       </div>

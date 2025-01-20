@@ -1,23 +1,13 @@
 import L from "leaflet";
 import React, { useEffect } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import img1 from "../img/run.gif";
-import img2 from "../img/run.gif";
-
 import { COORDS, URL, ATTRIBUTION, ZOOM } from "../config";
 
 function RenderMarker({ station, setStation, setActive }) {
-  const getIcon = () => {
-    return L.icon({
-      iconUrl: img1,
-      iconSize: [50, 50],
-      iconAnchor: [25, 50],
-    });
-  };
   return (
     <Marker
-      position={station.coords}
-      icon={getIcon()}
+      position={COORDS}
+      icon={station.getIcon() || [0, 0]}
       eventHandlers={{
         mouseover: (evt) => evt.target.openPopup(),
         mouseout: (evt) => evt.target.closePopup(),
@@ -52,7 +42,7 @@ export const Map = ({ setActive, center, stations, setStation }) => {
     <>
       <MapContainer zoom={ZOOM} center={COORDS} id="map">
         <TileLayer url={URL} attribution={ATTRIBUTION} />
-        <MoveTo mCoords={center} />
+
         {stations.map((station, i) => (
           <RenderMarker
             key={i}
@@ -61,6 +51,29 @@ export const Map = ({ setActive, center, stations, setStation }) => {
             setActive={setActive}
           />
         ))}
+        <div
+          className="projects"
+          style={{
+            zIndex: 9000,
+            position: "absolute",
+            top: "1rem",
+            right: "1rem",
+            width: "20 rem",
+            height: "20 rem",
+            fontSize: "5px",
+          }}
+        >
+          <h6>Old Projects</h6>
+          <ol>
+            <li>Local Network Design (green fields)</li>
+            <li>National Network Refresh</li>
+            <li>Satellite Environment Monitoring</li>
+            <li>Internet Edge Network Design</li>
+            <li>Aerial Systems Spec Development</li>
+            <li>Teams Management</li>
+            <li>Remote Network Systems Monitoring</li>
+          </ol>
+        </div>
       </MapContainer>
     </>
   );

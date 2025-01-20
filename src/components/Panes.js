@@ -1,4 +1,3 @@
-import career from "!!raw-loader!../res/career_syn.txt";
 import {
   Container,
   Navbar,
@@ -8,7 +7,7 @@ import {
   ProgressBar,
   Accordion,
 } from "react-bootstrap";
-
+import { useState } from "react";
 import img1 from "../img/croppedsam.png";
 import img2 from "../img/tshepo.jpg";
 import { Map } from "./Map.js";
@@ -22,9 +21,12 @@ import {
   experiences,
   dataStations,
   CCTV,
-  getCoords,
 } from "../config.js";
-import { useEffect, useState } from "react";
+import career from "!!raw-loader!../res/career_syn.txt";
+
+const stations = dataStations();
+const shortCourcess = shortCourses;
+const books = readBooks();
 
 export const CustomNavBar = () => {
   function createTitles(title, i) {
@@ -94,7 +96,19 @@ export const CustomHeader = () => {
                   </tr>
                   <tr>
                     <td>Location:</td>
-                    <td>1852 Kamogoro Street, Kagiso 2, Gauteng, 1754</td>
+                    <td>
+                      <ul style={{ listStyleType: "none" }}>
+                        <li style={{ fontSize: "9px" }}>
+                          1852 Kamogoro Street, Kagiso 2, Gauteng, 1754
+                        </li>
+                        <li style={{ fontSize: "9px" }}>
+                          268 San Ridge Village, Midrand, Gauteng, 1685
+                        </li>
+                        <li style={{ fontSize: "9px" }}>
+                          2410 Moremadi Park, Mankweng, Limpopo, 0727
+                        </li>
+                      </ul>
+                    </td>
                   </tr>
                   <tr>
                     <td>Drivers License:</td>
@@ -103,8 +117,16 @@ export const CustomHeader = () => {
                   <tr>
                     <td>Languages:</td>
                     <td>
-                      English, Pedi, Zulu,{" "}
-                      <p style={{ display: "inline", fontSize: "6px" }}>
+                      <p style={{ display: "inline", fontSize: "10px" }}>
+                        English,{" "}
+                      </p>
+                      <p style={{ display: "inline", fontSize: "11px" }}>
+                        Sepedi,{" "}
+                      </p>
+                      <p style={{ display: "inline", fontSize: "9px" }}>
+                        Zulu,
+                      </p>
+                      <p style={{ display: "inline", fontSize: "9px" }}>
                         Afrikaans
                       </p>
                     </td>
@@ -233,8 +255,8 @@ export const CustomSkills = () => {
         </div>
         <div>
           <h5>
-            Libraries : <span style={{ color: "green" }}>B</span>ulma,{" "}
-            <span style={{ color: "green" }}>B</span>ootstrap,{" "}
+            Acclimation to Libraries : <span style={{ color: "green" }}>B</span>
+            ulma, <span style={{ color: "green" }}>B</span>ootstrap,{" "}
             <span style={{ color: "red" }}>R</span>eact,{" "}
             <span style={{ color: "orange" }}>L</span>eaflet,{" "}
             <span style={{ color: "green" }}>J</span>query
@@ -252,7 +274,6 @@ export const CustomSkills = () => {
 export const CustomPassions = () => {
   const [active, setActive] = useState(false);
   const [book, setBook] = useState(null);
-  const books = readBooks();
 
   const book_table_headings = [
     "#",
@@ -295,7 +316,7 @@ export const CustomPassions = () => {
         <ol>
           <li>
             <div>
-              <h3>Reading</h3>
+              <h5>Reading</h5>
               <p>
                 Reading is eyes. <i>Click a row for opinion.</i>
               </p>
@@ -319,7 +340,7 @@ export const CustomPassions = () => {
           <br />
           <li>
             <div>
-              <h3>Github work</h3>
+              <h5>Github work</h5>
               <ul>
                 <li>Resume : https://github.com/Aldurson/Orion.git</li>
                 <li>
@@ -349,10 +370,6 @@ export const CustomPassions = () => {
                   Udemy course practice work :
                   https://github.com/Aldurson/07-Pig-Game.git
                 </li>
-                <li>
-                  Udemy course practice work :
-                  https://github.com/Aldurson/05-Guess-My-Number.git
-                </li>
               </ul>
             </div>
           </li>
@@ -366,7 +383,11 @@ export const CustomFoot = () => {
   return (
     <div id="foot">
       <h3>Ntlaletseng Samuel Nyamah</h3>
-      <h5>© Ntlaletseng Samuel Nyamah's Company. All rights reserved. 2025</h5>
+      <h5>
+        © Ntlaletseng Samuel Nyamah's Company
+        <em style={{ color: "red", fontSize: "1rem" }}>beta</em>. All rights
+        reserved. 2025{" "}
+      </h5>
     </div>
   );
 };
@@ -441,8 +462,6 @@ export const CustomExperience = () => {
   );
 };
 export const CustomEducation = () => {
-  const shortCourcess = shortCourses;
-
   function createShortCources(item, i) {
     return (
       <li
@@ -504,7 +523,8 @@ export const CustomEducation = () => {
             <Accordion.Item>
               <Accordion.Header>
                 Skills Training{" "}
-                <span style={{ fontSize: "8px" }}>-click for opinion</span>
+                <span style={{ fontSize: "8px" }}>-click for opinion </span>
+                <em style={{ color: "red", fontSize: "1rem" }}>-beta</em>
               </Accordion.Header>
               <Accordion.Body>
                 <ol>
@@ -537,7 +557,7 @@ export const CustomRef = () => {
                 <td>Andrew Matseke</td>
               </tr>
               <tr>
-                <td>C. Role:</td>
+                <td>Curr. Role: </td>
                 <td>Independent</td>
               </tr>
               <tr>
@@ -563,7 +583,7 @@ export const CustomRef = () => {
                 <td>Tshepo Maloma</td>
               </tr>
               <tr>
-                <td>C.Role:</td>
+                <td>Curr. Role: </td>
                 <td>COO at Inq</td>
               </tr>
               <tr>
@@ -590,7 +610,7 @@ export const CustomRef = () => {
                 <td>Mlindi Mashologu</td>
               </tr>
               <tr>
-                <td>C. Role:</td>
+                <td>Curr. Role: </td>
                 <td>Deputy Director General: ICT Information Society</td>
               </tr>
               <tr>
@@ -620,7 +640,10 @@ export const CustomRef = () => {
 export const CustomCareer = () => {
   return (
     <div className="content-panel shadow-lg mb-5 bg-white" id="achievements">
-      <h1>Career Achievements & Failures</h1>
+      <h1>
+        Career Achievements & Failures{" "}
+        <em style={{ color: "red", fontSize: "1rem" }}>beta</em>
+      </h1>
       <div className="skills-div">
         <div>
           <h3>Career Achievements</h3>
@@ -760,11 +783,11 @@ export const CustomProjects = () => {
   const [active, setActive] = useState(false);
   const [station, setStation] = useState({});
   const [center, setCenter] = useState(COORDS);
-  const stations = dataStations();
 
+  /*
   useEffect(() => {
     const temp = getCoords("marble hall");
-  }, []);
+  }, []);*/
 
   return (
     <div className="content-panel shadow-lg mb-5 bg-white" id="projects">
@@ -776,13 +799,15 @@ export const CustomProjects = () => {
           stations={stations}
           setCenter={setCenter}
           setStation={setStation}
+          setActive={setActive}
         />
         <Map
-          stations={stations}
-          setStation={setStation}
           setActive={setActive}
           center={center}
+          stations={stations}
+          setStation={setStation}
         />
+
         <CustomModal active={active} setActive={setActive} station={station} />
       </div>
     </div>
